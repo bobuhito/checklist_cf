@@ -1,0 +1,19 @@
+{
+  "name": "the-checklist",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-04",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CHECKLIST",
+        "class_name": "Checklist"
+      }
+    ]
+  },
+  "exports": {
+    "Checklist": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  }
+}
