@@ -75,6 +75,7 @@ footer a{margin-right:15px}
 .timeline-meta{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px}
 .time-form{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:14px}
 .time-form input{width:auto;max-width:100%}
+.replay-controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
 .event-detail{background:#f6f6f4;border-radius:8px;padding:12px;overflow:auto;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere}
 .replay-group{border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}
 .replay-fork{border-top:1px solid var(--line);padding:12px 0 2px;margin-top:10px}
@@ -123,12 +124,153 @@ main.innerHTML='<a class="back" href="#">← Main checklist</a><h1>Forks of this
 document.getElementById('new-fork').addEventListener('submit',async function(e){e.preventDefault();var form=e.currentTarget;var button=form.querySelector('button');button.disabled=true;try{await post('/api/fork',{groupId:id,targetYear:form.elements.targetYear.value,statement:form.elements.statement.value,comments:form.elements.comments.value});await render();}catch(err){showError(err.message);button.disabled=false;}});bindVotes();bindComments();}
 function replayForkHTML(f,isWinner){return '<div class="replay-fork">'+(isWinner?'<div class="winner">Displayed version at this time</div>':'')+'<div class="goal-title"><span class="year">'+esc(f.targetYear)+'</span><span class="goal-text">'+esc(f.statement)+'</span></div><div class="meta" style="margin-left:0">Score: <b>'+esc(scoreText(f.score))+'</b> · Submitted '+esc(fmt(f.createdAt))+'</div><div class="comments" style="margin-left:0">'+commentsHTML(f.comments)+'</div></div>';}
 function replayGroupHTML(g){var dead=g.winner.score<0;return '<article class="replay-group">'+(dead?'<div class="dead-label">In dead checklist at this time</div>':'')+'<div class="section-head"><b>'+esc(g.winner.targetYear)+' · '+esc(g.winner.statement)+'</b><span class="count">'+g.forks.length+' versions</span></div>'+g.forks.map(function(f,i){return replayForkHTML(f,i===0);}).join('')+'</article>';}
+
 var replayEvents=[];
-async function showReplaySeq(seq){var data=await api('/api/replay?seq='+encodeURIComponent(seq));var host=document.getElementById('replay-state');if(!host)return;var e=data.event;var label=e?({goal_created:'New goal submitted',fork_created:'New fork submitted',vote_cast:'Vote changed',comment_added:'Comment appended'}[e.type]||e.type):'Before the first action';
-host.innerHTML='<div class="section-head"><div><h2>Checklist at this point</h2><p class="intro">'+(e?'After action #'+esc(e.seq)+' · '+esc(fmt(e.at))+' · '+esc(label):'No saved actions yet at this time.')+'</p></div><span class="count">'+data.groups.length+' goals</span></div>'+(e?'<details><summary class="small">Full details of this saved action</summary><pre class="event-detail">'+esc(JSON.stringify({sequence:e.seq,timestamp:new Date(e.at).toISOString(),type:e.type,actor:e.actor,detail:e.detail},null,2))+'</pre></details>':'')+(data.groups.length?data.groups.map(replayGroupHTML).join(''):'<div class="empty">The checklist was empty at this point in history.</div>');
-var count=document.getElementById('replay-position');if(count)count.textContent=e?'Action '+e.seq+' of '+replayEvents.length:'Before first action';var time=document.getElementById('replay-time');if(time&&e)time.value=localValue(e.at);}
-async function renderReplay(){var data=await api('/api/history');replayEvents=data.events;main.innerHTML='<a class="back" href="#">← Main checklist</a><h1>Replay history</h1><p class="intro">Move through saved actions or choose a date and time. The display is reconstructed from the event log, not from a periodic snapshot.</p>'+(replayEvents.length?'<section class="timeline-panel"><div class="timeline-meta"><span id="replay-position">Action</span><span>'+replayEvents.length+' saved actions</span></div><input id="replay-slider" type="range" min="0" max="'+(replayEvents.length-1)+'" value="'+(replayEvents.length-1)+'"><form id="replay-time-form" class="time-form"><label for="replay-time">Show state at:</label><input id="replay-time" type="datetime-local" value="'+localValue(replayEvents[replayEvents.length-1].at)+'"><button class="primary" type="submit">Go to time</button></form></section><div id="replay-state" class="loading">Reconstructing history…</div>':'<div class="empty">No saved actions yet. Submissions, votes, forks, and comments will appear here.</div>');
-if(!replayEvents.length)return;var slider=document.getElementById('replay-slider');slider.addEventListener('change',function(){showReplaySeq(replayEvents[Number(slider.value)].seq).catch(showError);});document.getElementById('replay-time-form').addEventListener('submit',async function(e){e.preventDefault();var t=new Date(document.getElementById('replay-time').value).getTime();if(!Number.isFinite(t)){showError('Choose a valid date and time.');return;}try{var r=await api('/api/replay?at='+t);var idx=replayEvents.findIndex(function(ev){return ev.seq===r.seq;});if(idx>=0)slider.value=idx;await showReplaySeq(r.seq);}catch(err){showError(err.message);}});await showReplaySeq(replayEvents[replayEvents.length-1].seq);}
+var replayIndex=-1;
+
+function updateReplayButtons(busy){
+  var prev=document.getElementById('replay-prev');
+  var next=document.getElementById('replay-next');
+  if(prev)prev.disabled=busy||replayIndex<0;
+  if(next)next.disabled=busy||replayIndex>=replayEvents.length-1;
+}
+
+function displayReplay(data,index,syncTime){
+  replayIndex=index;
+  var host=document.getElementById('replay-state');
+  if(!host)return;
+
+  var e=data.event;
+  var label=e?({
+    goal_created:'New goal submitted',
+    fork_created:'New fork submitted',
+    vote_cast:'Vote changed',
+    comment_added:'Comment appended'
+  }[e.type]||e.type):'Before the first action';
+
+  host.innerHTML=
+    '<div class="section-head"><div><h2>Checklist at this point</h2><p class="intro">'+
+    (e?'After action #'+esc(e.seq)+' · '+esc(fmt(e.at))+' · '+esc(label):
+    'Before the first saved action.')+
+    '</p></div><span class="count">'+data.groups.length+' goals</span></div>'+
+    (e?'<details><summary class="small">Full details of this saved action</summary><pre class="event-detail">'+
+    esc(JSON.stringify({
+      sequence:e.seq,
+      timestamp:fmt(e.at),
+      type:e.type,
+      actor:e.actor,
+      detail:e.detail
+    },null,2))+'</pre></details>':'')+
+    (data.groups.length?data.groups.map(replayGroupHTML).join(''):
+    '<div class="empty">The checklist was empty at this point in history.</div>');
+
+  var count=document.getElementById('replay-position');
+  if(count)count.textContent=e?
+    'Action '+(index+1)+' of '+replayEvents.length:
+    'Before first action';
+
+  var time=document.getElementById('replay-time');
+  if(syncTime&&time&&e)time.value=localValue(e.at);
+
+  updateReplayButtons(false);
+}
+
+async function showReplayIndex(index,syncTime){
+  var target=Math.max(-1,Math.min(index,replayEvents.length-1));
+  var seq=target<0?0:replayEvents[target].seq;
+
+  updateReplayButtons(true);
+
+  try{
+    var data=await api('/api/replay?seq='+encodeURIComponent(seq));
+    displayReplay(data,target,syncTime);
+  }finally{
+    updateReplayButtons(false);
+  }
+}
+
+async function renderReplay(){
+  var data=await api('/api/history');
+  replayEvents=data.events;
+
+  main.innerHTML=
+    '<a class="back" href="#">← Main checklist</a>'+
+    '<h1>Replay history</h1>'+
+    '<p class="intro">Choose a minute to seek through history, or step through individual saved actions.</p>'+
+    (replayEvents.length?
+    '<section class="timeline-panel">'+
+      '<div class="timeline-meta">'+
+        '<span id="replay-position">Action</span>'+
+        '<span id="replay-total">'+replayEvents.length+' saved actions</span>'+
+      '</div>'+
+      '<div class="replay-controls">'+
+        '<button class="primary" id="replay-prev" disabled>← Previous action</button>'+
+        '<button class="primary" id="replay-next" disabled>Next action →</button>'+
+      '</div>'+
+      '<form id="replay-time-form" class="time-form">'+
+        '<label for="replay-time">Show state through this minute:</label>'+
+        '<input id="replay-time" type="datetime-local" step="60" value="'+
+        localValue(replayEvents[replayEvents.length-1].at)+'">'+
+        '<button class="primary" type="submit">Go to minute</button>'+
+      '</form>'+
+      '<div class="form-note">Includes all actions recorded during the selected minute.</div>'+
+    '</section>'+
+    '<div id="replay-state" class="loading">Reconstructing history…</div>':
+    '<div class="empty">No saved actions yet. Submissions, votes, forks, and comments will appear here.</div>');
+
+  if(!replayEvents.length)return;
+
+  document.getElementById('replay-prev').addEventListener('click',function(){
+    showReplayIndex(replayIndex-1,true).catch(showError);
+  });
+
+  document.getElementById('replay-next').addEventListener('click',function(){
+    showReplayIndex(replayIndex+1,true).catch(showError);
+  });
+
+  document.getElementById('replay-time-form').addEventListener('submit',async function(e){
+    e.preventDefault();
+
+    var button=this.querySelector('button');
+    var t=new Date(document.getElementById('replay-time').value).getTime();
+
+    if(!Number.isFinite(t)){
+      showError('Choose a valid date and time.');
+      return;
+    }
+
+    button.disabled=true;
+    updateReplayButtons(true);
+
+    try{
+      // Include the entire selected minute.
+      var minuteEnd=t+59999;
+      var r=await api('/api/replay?at='+minuteEnd);
+
+      var index=r.seq?
+        replayEvents.findIndex(function(ev){return ev.seq===r.seq;}):-1;
+
+      // Refresh the action index if another visitor submitted an action.
+      if(r.seq&&index<0){
+        var h=await api('/api/history');
+        replayEvents=h.events;
+        document.getElementById('replay-total').textContent=
+          replayEvents.length+' saved actions';
+        index=replayEvents.findIndex(function(ev){return ev.seq===r.seq;});
+      }
+
+      displayReplay(r,index,false);
+    }catch(err){
+      showError(err.message);
+    }finally{
+      button.disabled=false;
+      updateReplayButtons(false);
+    }
+  });
+
+  await showReplayIndex(replayEvents.length-1,false);
+}
+
 async function render(){main.innerHTML='<div class="loading">Loading…</div>';try{var hash=decodeURIComponent(location.hash.slice(1)||'');if(hash==='dead')await renderList(true);else if(hash==='replay')await renderReplay();else if(hash.indexOf('forks/')===0)await renderForks(hash.slice(6));else await renderList(false);}catch(e){main.innerHTML='<div id="error">'+esc(e.message)+'</div>';}}
 window.addEventListener('hashchange',render);
 render();
