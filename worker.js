@@ -11,14 +11,14 @@ nav{display:flex;gap:18px;white-space:nowrap;font-size:13px;color:var(--muted)}m
 h1{margin:0 0 6px;font-size:26px;line-height:1.2;letter-spacing:-.7px}h2{margin:0 0 6px;font-size:19px;letter-spacing:-.25px}
 .intro{margin:0 0 24px;color:var(--muted);font-size:14px}.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:14px}.count{font-size:12px;color:var(--muted)}
 .card{border:1px solid var(--line);border-radius:12px;padding:17px 18px;margin:12px 0;background:#fff}.goal-title{display:flex;gap:13px;flex:1;font-size:17px;font-weight:700;line-height:1.35;letter-spacing:-.15px}.goal-text{overflow-wrap:anywhere}
-.year{display:inline-block;min-width:54px;font-size:14px;font-weight:750;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}.meta{margin:9px 0 0 67px;color:var(--muted);font-size:12px}.meta a{text-decoration:underline;text-decoration-color:#bbb;text-underline-offset:2px}
+.year{display:inline-block;min-width:54px;font-size:14px;font-weight:750;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}.version-link{display:inline-block;margin-left:.55em;color:var(--muted);font-size:13px;font-weight:650;white-space:nowrap;text-decoration:none}.version-link:hover{color:var(--ink);text-decoration:underline}.version-link .version-times{font-size:.72em;vertical-align:middle;line-height:1;margin-right:1px}.meta{margin:9px 0 0 67px;color:var(--muted);font-size:12px}.meta a{text-decoration:underline;text-decoration-color:#bbb;text-underline-offset:2px}
 .comments{margin:14px 0 0 67px}.comment{border-left:2px solid var(--line);padding:1px 0 2px 11px;margin:9px 0;color:#333;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.comment-time{color:#929292;font-size:11px;margin-bottom:2px}
 .card-actions{display:flex;align-items:center;gap:10px;margin:13px 0 0 67px;flex-wrap:wrap}.votes{display:flex;align-items:center;gap:5px}.vote{width:32px;height:29px;border:1px solid var(--line);border-radius:7px;background:#fff;color:#444;cursor:pointer;font-size:15px}.vote:hover{background:var(--soft);border-color:#aaa}.vote.selected{border-color:#222;background:#222;color:white}.score{min-width:25px;text-align:center;font-size:13px;font-weight:750;font-variant-numeric:tabular-nums}.details-form{margin:12px 0 0 67px}.details-form summary{font-size:12px;color:var(--muted);cursor:pointer}form{margin:0}.form-panel{padding:17px;border:1px solid var(--line);border-radius:12px;background:var(--soft);margin:18px 0 24px}.form-panel h2{margin-bottom:12px}
 .fields{display:grid;grid-template-columns:135px 1fr;gap:11px 14px;align-items:start}label{font-size:13px;font-weight:650;padding-top:8px}
 input,textarea{width:100%;font:inherit;font-size:14px;padding:9px 10px;border:1px solid #cfcfcf;border-radius:7px;background:#fff;color:var(--ink)}textarea{min-height:74px;resize:vertical}input:focus,textarea:focus{outline:2px solid #aaa;outline-offset:1px}
 button.primary{padding:9px 15px;border:1px solid #222;border-radius:7px;background:#222;color:white;font:inherit;font-size:13px;font-weight:650;cursor:pointer}button.primary:hover{background:#444}button:disabled{opacity:.5;cursor:wait}.form-buttons{grid-column:2;display:flex;align-items:center;gap:12px}
 .fork-card{border-top:1px solid var(--line);padding:18px 0}.fork-card:first-of-type{border-top:0}.fork-heading{display:flex;gap:14px;align-items:flex-start}.fork-rank{width:26px;flex:none;color:#999;font-size:12px;padding-top:4px}.fork-body{flex:1;min-width:0}.fork-card .comments,.fork-card .card-actions,.fork-card .details-form{margin-left:40px}.winner{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--good);font-weight:800;margin:0 0 5px}
-.empty{padding:30px 18px;border:1px dashed #ccc;border-radius:12px;color:var(--muted);text-align:center;font-size:14px}
+.empty{padding:30px 18px;border:1px dashed #ccc;border-radius:12px;color:var(--muted);text-align:center;font-size:14px}.generated-at{width:min(920px,calc(100% - 36px));margin:0 auto;padding:10px 0 20px;text-align:center;color:#999;font-size:11px;letter-spacing:.1px}
 html.read-only .vote,html.read-only .form-panel,html.read-only .details-form{display:none}
 .replay-banner{background:#202020;color:white;padding:10px 18px;text-align:center;font-size:13px}.replay-banner a{color:white;text-decoration:underline;margin:0 8px}.replay-banner .primary{margin:0 3px;padding:5px 9px;font-size:11px;border-color:white}.timeline-panel{border:1px solid var(--line);border-radius:12px;padding:17px;margin:18px 0 24px}.timeline-meta{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px}.time-form{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:14px}.time-form input{width:auto;max-width:100%}#error{color:var(--bad);font-size:13px;margin:10px 0}
 @media(max-width:620px){header{align-items:flex-start;flex-direction:column;gap:14px}.fields{grid-template-columns:1fr;gap:5px}.fields label{padding-top:5px}.form-buttons{grid-column:1}.meta,.comments,.card-actions,.details-form{margin-left:0}.goal-title{gap:8px}.card{padding:14px}.year{min-width:48px}.fork-card .comments,.fork-card .card-actions,.fork-card .details-form{margin-left:0}.replay-banner{line-height:2}}
@@ -250,33 +250,39 @@ function commentHTML(comments, zone) {
 }
 function votesHTML(fork, historical) {
   if (historical) return `<div class="votes"><span class="score">${htmlEscape(fork.score > 0 ? "+" + fork.score : fork.score)}</span></div>`;
-  return `<div class="votes"><button class="vote" data-vote="1" data-fork="${htmlEscape(fork.id)}" aria-label="Upvote">▲</button><span class="score">${htmlEscape(fork.score > 0 ? "+" + fork.score : fork.score)}</span><button class="vote" data-vote="-1" data-fork="${htmlEscape(fork.id)}" aria-label="Downvote">▼</button></div>`;
+  return `<div class="votes"><button class="vote" data-vote="1" data-fork="${htmlEscape(fork.id)}" aria-label="Upvote">&#9650;</button><span class="score">${htmlEscape(fork.score > 0 ? "+" + fork.score : fork.score)}</span><button class="vote" data-vote="-1" data-fork="${htmlEscape(fork.id)}" aria-label="Downvote">&#9660;</button></div>`;
 }
 function commentFormHTML(forkId, historical) {
   if (historical) return "";
-  return `<details class="details-form"><summary>Add a comment</summary><form class="comment-form" data-fork="${htmlEscape(forkId)}"><textarea name="text" maxlength="2000" required placeholder="Add a comment…"></textarea><div class="form-buttons"><button class="primary" type="submit">Append comment</button></div></form></details>`;
+  return `<details class="details-form"><summary>Add a comment</summary><form class="comment-form" data-fork="${htmlEscape(forkId)}"><textarea name="text" maxlength="2000" required placeholder="Add a comment&#8230;"></textarea><div class="form-buttons"><button class="primary" type="submit">Append comment</button></div></form></details>`;
 }
 function groupCardHTML(group, historical, zone, query) {
   const fork = group.winner;
   const countLabel = `${group.forkCount} ${group.forkCount === 1 ? "version" : "versions"}`;
-  return `<article class="card"><div class="goal-title"><span class="year">${fork.targetYear}</span><span class="goal-text">${htmlEscape(fork.statement)}</span></div><div class="meta"><a href="/goal/${encodeURIComponent(group.id)}${query}" aria-label="View ${htmlEscape(countLabel)}">${group.forkCount}</a></div><div class="card-actions">${votesHTML(fork, historical)}</div>${commentHTML(fork.comments, zone)}${commentFormHTML(fork.id, historical)}</article>`;
+  const versionLink = `<a class="version-link" href="/goal/${encodeURIComponent(group.id)}${query}" aria-label="View ${htmlEscape(countLabel)}"><span class="version-times">&#215;</span>${group.forkCount}</a>`;
+  return `<article class="card"><div class="goal-title"><span class="year">${fork.targetYear}</span><span class="goal-text">${htmlEscape(fork.statement)}${versionLink}</span></div><div class="card-actions">${votesHTML(fork, historical)}</div>${commentHTML(fork.comments, zone)}${commentFormHTML(fork.id, historical)}</article>`;
 }
 function forkFormHTML(groupId, historical) {
   if (historical) return "";
-  return `<section class="form-panel"><h2>Add a fork</h2><form id="new-fork" data-group="${htmlEscape(groupId)}"><div class="fields"><label for="fork-year">Target year</label><input id="fork-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="fork-statement">Goal</label><textarea id="fork-statement" name="statement" maxlength="600" required placeholder="A different version of the goal…"></textarea><label for="fork-comments">Comments</label><textarea id="fork-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit fork</button></div></div></form></section>`;
+  return `<section class="form-panel"><h2>Add a fork</h2><form id="new-fork" data-group="${htmlEscape(groupId)}"><div class="fields"><label for="fork-year">Target year</label><input id="fork-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="fork-statement">Goal</label><textarea id="fork-statement" name="statement" maxlength="600" required placeholder="A different version of the goal&#8230;"></textarea><label for="fork-comments">Comments</label><textarea id="fork-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit fork</button></div></div></form></section>`;
 }
 function newGoalFormHTML(historical) {
   if (historical) return "";
   return `<section class="form-panel"><h2>Propose a new goal</h2><form id="new-goal"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="What should society achieve?"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit goal</button></div></div></form></section>`;
 }
+function generationFooter(generatedAt) {
+  const label = generatedAt.slice(0, 19).replace("T", " ") + " UTC";
+  return `<footer class="generated-at">Page generated: ${htmlEscape(label)}</footer>`;
+}
 function pageLayout({ title, body, path, historical, at, seq, zone, generatedAt }) {
   const query = historical ? (seq !== null ? `?seq=${seq}` : `?at=${at}`) : "";
   const banner = historical
-    ? `<div class="replay-banner">This is what users saw ${htmlEscape(formatTime(at, zone) || "before the first saved action")} <a href="${htmlEscape(path)}">Return to live page</a> <a href="/history">Choose another time</a> <button class="primary" data-replay-step="-1">← Previous</button> <button class="primary" data-replay-step="1">Next →</button></div>`
+    ? `<div class="replay-banner">This is what users saw ${htmlEscape(formatTime(at, zone) || "before the first saved action")} <a href="${htmlEscape(path)}">Return to live page</a> <a href="/history">Choose another time</a> <button class="primary" data-replay-step="-1">&#8592; Previous</button> <button class="primary" data-replay-step="1">Next &#8594;</button></div>`
     : "";
   const description = "An AI dream timeline.";
   const documentTitle = title === "An AI dream timeline" ? title : `${title} | An AI dream timeline`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${description}"><meta name="page-generated-at" content="${htmlEscape(generatedAt)}"><meta name="theme-color" content="#fff"><title>${htmlEscape(documentTitle)}</title><style>${PAGE_STYLE}</style></head><body data-historical="${historical ? "1" : "0"}" data-at="${at || 0}" data-seq="${seq === null ? "" : seq}" data-timezone="${htmlEscape(zone)}">${banner}<header><p class="tagline">An AI dream timeline</p><nav><a href="/veto${query}">Vetoes</a><a href="/history">History</a></nav></header><main>${body}</main>${pageScript()}</body></html>`;
+  const footer = historical ? "" : generationFooter(generatedAt);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${description}"><meta name="theme-color" content="#fff"><title>${htmlEscape(documentTitle)}</title><style>${PAGE_STYLE}</style></head><body data-historical="${historical ? "1" : "0"}" data-at="${at || 0}" data-seq="${seq === null ? "" : seq}" data-timezone="${htmlEscape(zone)}">${banner}<header><p class="tagline">An AI dream timeline</p><nav><a href="/veto${query}">Vetoes</a><a href="/history">History</a></nav></header><main>${body}</main>${footer}${pageScript()}</body></html>`;
 }
 function renderList(groups, vetoes, historical, zone, query) {
   const visible = groups.filter(group => vetoes ? group.winner.score < 0 : group.winner.score >= 0);
@@ -402,7 +408,8 @@ export class Checklist extends DurableObject {
         body = renderGoal(group, historical, zone);
       } else {
         const notFoundGeneratedAt = new Date().toISOString();
-        const notFound = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="page-generated-at" content="${htmlEscape(notFoundGeneratedAt)}"><title>Not found | The Checklist</title></head><body><h1>Page not found</h1><p><a href="/">An AI dream timeline</a></p></body></html>`;
+        const notFoundFooter = historical ? "" : generationFooter(notFoundGeneratedAt);
+        const notFound = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Not found | An AI dream timeline</title><style>${PAGE_STYLE}</style></head><body><main><h1>Page not found</h1><p><a href="/">An AI dream timeline</a></p></main>${notFoundFooter}</body></html>`;
         return new Response(request.method === "HEAD" ? null : notFound, { status: 404, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" } });
       }
       const at = snapshot ? snapshot.at : 0;
@@ -421,7 +428,8 @@ export class Checklist extends DurableObject {
       if (path.startsWith("/api/")) return json({ error: error?.message || "Request failed." }, 400);
       const message = htmlEscape(error?.message || "Request failed.");
       const generatedAt = new Date().toISOString();
-      return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="page-generated-at" content="${htmlEscape(generatedAt)}"><title>Error | The Checklist</title></head><body><h1>Unable to display this page</h1><p>${message}</p><p><a href="/">An AI dream timeline</a></p></body></html>`, {
+      const footer = historical ? "" : generationFooter(generatedAt);
+      return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Error | An AI dream timeline</title><style>${PAGE_STYLE}</style></head><body><main><h1>Unable to display this page</h1><p>${message}</p><p><a href="/">An AI dream timeline</a></p></main>${footer}</body></html>`, {
         status: 400, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }
       });
     }
