@@ -17,6 +17,7 @@ h1{margin:0 0 6px;font-size:26px;line-height:1.2;letter-spacing:-.7px}h2{margin:
 .fields{display:grid;grid-template-columns:135px 1fr;gap:11px 14px;align-items:start}label{font-size:13px;font-weight:650;padding-top:8px}
 input,textarea{width:100%;font:inherit;font-size:14px;padding:9px 10px;border:1px solid #cfcfcf;border-radius:7px;background:#fff;color:var(--ink)}textarea{min-height:74px;resize:vertical}input:focus,textarea:focus{outline:2px solid #aaa;outline-offset:1px}
 button.primary{padding:9px 15px;border:1px solid #222;border-radius:7px;background:#222;color:white;font:inherit;font-size:13px;font-weight:650;cursor:pointer}button.primary:hover{background:#444}button:disabled{opacity:.5;cursor:wait}.form-buttons{grid-column:2;display:flex;align-items:center;gap:12px}
+.final-warning{color:var(--bad);font-size:12px;font-weight:650}
 .fork-card{border-top:1px solid var(--line);padding:18px 0}.fork-card:first-of-type{border-top:0}.fork-heading{display:flex;gap:14px;align-items:flex-start}.fork-rank{width:26px;flex:none;color:#999;font-size:12px;padding-top:4px}.fork-body{flex:1;min-width:0}.fork-card .comments,.fork-card .card-actions,.fork-card .details-form{margin-left:40px}.winner{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--good);font-weight:800;margin:0 0 5px}
 .empty{padding:30px 18px;border:1px dashed #ccc;border-radius:12px;color:var(--muted);text-align:center;font-size:14px}.generated-at{width:min(920px,calc(100% - 36px));margin:0 auto;padding:10px 0 20px;text-align:center;color:#999;font-size:11px;letter-spacing:.1px}
 html.read-only .vote,html.read-only .form-panel,html.read-only .details-form{display:none}
@@ -210,6 +211,20 @@ function pageScript() {
       location.reload();
     } catch (e) { error(e.message); button.disabled = false; }
   });
+
+function bindFinalWarning(form) {
+  if (!form) return;
+  const warning = $(".final-warning", form);
+  const goal = form.elements.statement;
+  goal.addEventListener("input", () => {
+    warning.hidden = !goal.value.trim();
+    $('label[for="new-year"]', form).style.color = "var(--bad)";
+    $('label[for="new-statement"]', form).style.color = "var(--bad)";
+  });
+}
+bindFinalWarning(newGoal);
+bindFinalWarning(newFork);
+  
   const replayForm = $("#replay-time-form");
   if (replayForm) replayForm.addEventListener("submit", event => {
     event.preventDefault();
@@ -264,11 +279,11 @@ function groupCardHTML(group, historical, zone, query) {
 }
 function forkFormHTML(groupId, historical) {
   if (historical) return "";
-  return `<section class="form-panel"><h2>Add a fork</h2><form id="new-fork" data-group="${htmlEscape(groupId)}"><div class="fields"><label for="fork-year">Target year</label><input id="fork-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="fork-statement">Goal</label><textarea id="fork-statement" name="statement" maxlength="600" required placeholder="A different version of the goal&#8230;"></textarea><label for="fork-comments">Comments</label><textarea id="fork-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit fork</button></div></div></form></section>`;
+  return `<section class="form-panel"><h2>Add a fork</h2><form id="new-fork" data-group="${htmlEscape(groupId)}"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="A different version of the goal&#8230;"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit fork</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
 }
 function newGoalFormHTML(historical) {
   if (historical) return "";
-  return `<section class="form-panel"><h2>Propose a new goal</h2><form id="new-goal"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="What should society achieve?"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit goal</button></div></div></form></section>`;
+  return `<section class="form-panel"><h2>Propose a new goal</h2><form id="new-goal"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="What should society achieve?"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit goal</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
 }
 function generationFooter(generatedAt) {
   const label = generatedAt.slice(0, 19).replace("T", " ") + " UTC";
@@ -282,7 +297,7 @@ function pageLayout({ title, body, path, historical, at, seq, zone, generatedAt 
   const description = "An AI dream timeline.";
   const documentTitle = title === "An AI dream timeline" ? title : `${title} | An AI dream timeline`;
   const footer = historical || path == "/history" ? "" : generationFooter(generatedAt);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${description}"><meta name="theme-color" content="#fff"><title>${htmlEscape(documentTitle)}</title><style>${PAGE_STYLE}</style></head><body data-historical="${historical ? "1" : "0"}" data-at="${at || 0}" data-seq="${seq === null ? "" : seq}" data-timezone="${htmlEscape(zone)}">${banner}<header><p class="tagline">An AI dream timeline</p><nav><a href="/veto${query}">Vetoes</a><a href="/history">History</a></nav></header><main>${body}</main>${footer}${pageScript()}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${description}"><meta name="theme-color" content="#fff"><title>${htmlEscape(documentTitle)}</title><style>${PAGE_STYLE}</style></head><body data-historical="${historical ? "1" : "0"}" data-at="${at || 0}" data-seq="${seq === null ? "" : seq}" data-timezone="${htmlEscape(zone)}">${banner}<header><a class="tagline" href="/${query}">An AI dream timeline</a><nav><a href="/veto${query}">Vetoes</a><a href="/history">History</a></nav></header><main>${body}</main>${footer}${pageScript()}</body></html>`;
 }
 function renderList(groups, vetoes, historical, zone, query) {
   const visible = groups.filter(group => vetoes ? group.winner.score < 0 : group.winner.score >= 0);
