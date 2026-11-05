@@ -214,12 +214,12 @@ function pageScript() {
 
 function bindFinalWarning(form) {
   if (!form) return;
-  const warning = $(".final-warning", form);
   const goal = form.elements.statement;
   goal.addEventListener("input", () => {
-    warning.hidden = !goal.value.trim();
-    $('label[for="new-year"]', form).style.color = "var(--bad)";
-    $('label[for="new-statement"]', form).style.color = "var(--bad)";
+    const isEmpty = !goal.value.trim();
+    $(".final-warning", form).hidden = isEmpty;
+    $('label[for="new-year"]', form).style.color = isEmpty ? "" : "var(--bad)";
+    $('label[for="new-statement"]', form).style.color = isEmpty ? "" : "var(--bad)";
   });
 }
 bindFinalWarning(newGoal);
@@ -279,11 +279,11 @@ function groupCardHTML(group, historical, zone, query) {
 }
 function forkFormHTML(groupId, historical) {
   if (historical) return "";
-  return `<section class="form-panel"><h2>Add a fork</h2><form id="new-fork" data-group="${htmlEscape(groupId)}"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="A different version of the goal&#8230;"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit fork</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
+  return `<section class="form-panel"><h2>Add alternate version</h2><form id="new-fork" data-group="${htmlEscape(groupId)}"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="A different version of the goal&#8230;"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
 }
 function newGoalFormHTML(historical) {
   if (historical) return "";
-  return `<section class="form-panel"><h2>Propose a new goal</h2><form id="new-goal"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="What should society achieve?"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit goal</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
+  return `<section class="form-panel"><h2>Propose a new goal</h2><form id="new-goal"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="What should society achieve?"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
 }
 function generationFooter(generatedAt) {
   const label = generatedAt.slice(0, 19).replace("T", " ") + " UTC";
@@ -312,7 +312,7 @@ function renderList(groups, vetoes, historical, zone, query) {
 function renderGoal(group, historical, zone) {
   if (!group) return `<h1>Goal not found</h1><div class="empty">This goal did not exist at the selected time, or it no longer exists.</div>`;
   const forks = group.forks.map((fork, index) => `<article class="fork-card"><div class="fork-heading"><div class="fork-rank">#${index + 1}</div><div class="fork-body">${index === 0 ? `<div class="winner">Leading version</div>` : ""}<div class="goal-title"><span class="year">${fork.targetYear}</span><span class="goal-text">${htmlEscape(fork.statement)}</span></div><div class="meta" style="margin-left:0">Submitted ${htmlEscape(formatTime(fork.createdAt, zone))}</div></div></div><div class="card-actions">${votesHTML(fork, historical)}</div>${commentHTML(fork.comments, zone)}${commentFormHTML(fork.id, historical)}</article>`).join("");
-  return `<h1>${htmlEscape(group.winner.statement)}</h1><p class="intro">Target year: ${group.winner.targetYear}</p>${forkFormHTML(group.id, historical)}<div class="section-head"><h2>Versions</h2><span class="count">${group.forks.length}</span></div>${forks}`;
+  return `${forkFormHTML(group.id, historical)}<div class="section-head"><h2>Versions</h2><span class="count">${group.forks.length}</span></div>${forks}`;  
 }
 function renderHistory(events, zone) {
   const latest = events.length ? events[events.length - 1].at : Date.now();
