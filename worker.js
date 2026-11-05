@@ -312,7 +312,7 @@ function renderList(groups, vetoes, historical, zone, query) {
 function renderGoal(group, historical, zone) {
   if (!group) return `<h1>Goal not found</h1><div class="empty">This goal did not exist at the selected time, or it no longer exists.</div>`;
   const forks = group.forks.map((fork, index) => `<article class="fork-card"><div class="fork-heading"><div class="fork-rank">#${index + 1}</div><div class="fork-body">${index === 0 ? `<div class="winner">Leading version</div>` : ""}<div class="goal-title"><span class="year">${fork.targetYear}</span><span class="goal-text">${htmlEscape(fork.statement)}</span></div><div class="meta" style="margin-left:0">Submitted ${htmlEscape(formatTime(fork.createdAt, zone))}</div></div></div><div class="card-actions">${votesHTML(fork, historical)}</div>${commentHTML(fork.comments, zone)}${commentFormHTML(fork.id, historical)}</article>`).join("");
-  return `${forkFormHTML(group.id, historical)}<div class="section-head"><h2>Versions</h2><span class="count">${group.forks.length}</span></div>${forks}`;  
+  return `<div class="section-head"><span class="count">${group.forks.length} ${group.forks.length === 1 ? "version" : "versions"}</span></div>${forkFormHTML(group.id, historical)}${forks}`;
 }
 function renderHistory(events, zone) {
   const latest = events.length ? events[events.length - 1].at : Date.now();
