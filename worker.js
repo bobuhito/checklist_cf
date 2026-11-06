@@ -1,7 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 
 const PAGE_STYLE = `
-:root{color-scheme:light;--ink:#171717;--muted:#707070;--line:#dedede;--soft:#f6f6f4;--good:#147a45;--bad:#a33a32}
+:root{color-scheme:light;--ink:#171717;--muted:#707070;--line:#dedede;--soft:#f6f6f4;--good:#147a45;--bad:#e00000}
 *{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
 header,main{width:min(920px,calc(100% - 36px));margin-inline:auto}
@@ -269,7 +269,7 @@ function votesHTML(fork, historical) {
 }
 function commentFormHTML(forkId, historical) {
   if (historical) return "";
-  return `<details class="details-form"><summary>Add a comment</summary><form class="comment-form" data-fork="${htmlEscape(forkId)}"><textarea name="text" maxlength="2000" required placeholder="Add a comment&#8230;"></textarea><div class="form-buttons"><button class="primary" type="submit">Append comment</button></div></form></details>`;
+  return `<details class="details-form"><summary>Add a comment</summary><form class="comment-form" data-fork="${htmlEscape(forkId)}"><textarea name="text" maxlength="2000" required placeholder="Clarifications, questions, details, progress notes&#8230;"></textarea><div class="form-buttons"><button class="primary" type="submit">Append comment</button></div></form></details>`;
 }
 function groupCardHTML(group, historical, zone, query) {
   const fork = group.winner;
