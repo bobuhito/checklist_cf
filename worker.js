@@ -257,10 +257,10 @@ bindFinalWarning(newFork);
 })();
 </script>`;
 }
-function commentHTML(comments, zone) {
+function commentHTML(comments, zone, showTime = true) {
   if (!comments?.length) return "";
   return `<div class="comments">${comments.map(comment =>
-    `<div class="comment"><div class="comment-time">${htmlEscape(formatTime(comment.at, zone))}</div><div>${htmlEscape(comment.text)}</div></div>`
+    `<div class="comment">${showTime ? `<div class="comment-time">${htmlEscape(formatTime(comment.at, zone))}</div>` : ""}<div>${htmlEscape(comment.text)}</div></div>`
   ).join("")}</div>`;
 }
 function votesHTML(fork, historical) {
@@ -275,15 +275,15 @@ function groupCardHTML(group, historical, zone, query) {
   const fork = group.winner;
   const countLabel = `${group.forkCount} ${group.forkCount === 1 ? "version" : "versions"}`;
   const versionLink = `<a class="version-link" href="/goal/${encodeURIComponent(group.id)}${query}" aria-label="View ${htmlEscape(countLabel)}"><span class="version-times">&#215;</span>${group.forkCount}</a>`;
-  return `<article class="card"><div class="goal-title"><span class="year">${fork.targetYear}</span><span class="goal-text">${htmlEscape(fork.statement)}${versionLink}</span></div><div class="card-actions">${votesHTML(fork, historical)}</div>${commentHTML(fork.comments, zone)}${commentFormHTML(fork.id, historical)}</article>`;
+  return `<article class="card"><div class="goal-title"><span class="year">${fork.targetYear}</span><span class="goal-text">${htmlEscape(fork.statement)}${versionLink}</span></div><div class="card-actions">${votesHTML(fork, historical)}</div>${commentHTML(fork.comments, zone, false)}</article>`;
 }
 function forkFormHTML(groupId, historical) {
   if (historical) return "";
-  return `<section class="form-panel"><h2>Add alternate version</h2><form id="new-fork" data-group="${htmlEscape(groupId)}"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="A different version of the goal&#8230;"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
+  return `<section class="form-panel"><h2>Add alternate version</h2><form id="new-fork" data-group="${htmlEscape(groupId)}"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="A different version of the goal&#8230;"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="optional"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
 }
 function newGoalFormHTML(historical) {
   if (historical) return "";
-  return `<section class="form-panel"><h2>Propose a new goal (or change an existing goal by clicking its <span class="version-times">&#215;</span>N link)</h2><form id="new-goal"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="What should society achieve?"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="Optional comments"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
+  return `<section class="form-panel"><h2>Propose a new goal (or change an existing goal by clicking its <span class="version-times">&#215;</span>N link)</h2><form id="new-goal"><div class="fields"><label for="new-year">Target year</label><input id="new-year" name="targetYear" type="number" min="1900" max="9999" value="${new Date().getUTCFullYear() + 1}" required><label for="new-statement">Goal</label><textarea id="new-statement" name="statement" maxlength="600" required placeholder="What should society achieve?"></textarea><label for="new-comments">Comments</label><textarea id="new-comments" name="comments" maxlength="2000" placeholder="optional"></textarea><div class="form-buttons"><button class="primary" type="submit">Submit</button><span class="final-warning" hidden>Please check carefully. Submissions are final and cannot be edited.</span></div></div></form></section>`;
 }
 function generationFooter(generatedAt) {
   const label = generatedAt.slice(0, 19).replace("T", " ") + " UTC";
@@ -450,7 +450,7 @@ export class Checklist extends DurableObject {
     }
   }
   async handleAPI(request, url, path) {
-    const clientID = () => request.headers.get("CF-Connecting-IP") || "CF-empty";
+    const clientID = request.headers.get("CF-Connecting-IP") || "CF-empty";
     if (path === "/api/state" && request.method === "GET") {
       const actor = url.searchParams.get("actor");
       const data = url.searchParams.has("at") || url.searchParams.has("seq")
@@ -485,7 +485,7 @@ export class Checklist extends DurableObject {
       this.ctx.storage.transactionSync(() => {
         this.sql.exec("INSERT INTO goals (id, created_at) VALUES (?, ?)", group.id, at);
         this.sql.exec("INSERT INTO forks (id, group_id, target_year, statement, score, created_at) VALUES (?, ?, ?, ?, 0, ?)", fork.id, group.id, targetYear, statement, at);
-        const seq = this.log("goal_created", actor, at, { group, fork, initialComment }, clientID());
+        const seq = this.log("goal_created", actor, at, { group, fork, initialComment }, clientID);
         if (initialComment) this.sql.exec("INSERT INTO comments (id, fork_id, actor, text, created_at, event_seq) VALUES (?, ?, ?, ?, ?, ?)", initialComment.id, fork.id, actor, initialComment.text, at, seq);
       });
       return json({ ok: true, groupId: group.id, forkId: fork.id });
@@ -500,7 +500,7 @@ export class Checklist extends DurableObject {
       const initialComment = commentText ? { id: crypto.randomUUID(), actor, text: commentText, at } : null;
       this.ctx.storage.transactionSync(() => {
         this.sql.exec("INSERT INTO forks (id, group_id, target_year, statement, score, created_at) VALUES (?, ?, ?, ?, 0, ?)", fork.id, groupId, targetYear, statement, at);
-        const seq = this.log("fork_created", actor, at, { fork, initialComment }, clientID());
+        const seq = this.log("fork_created", actor, at, { fork, initialComment }, clientID);
         if (initialComment) this.sql.exec("INSERT INTO comments (id, fork_id, actor, text, created_at, event_seq) VALUES (?, ?, ?, ?, ?, ?)", initialComment.id, fork.id, actor, initialComment.text, at, seq);
       });
       return json({ ok: true, forkId: fork.id });
@@ -521,7 +521,7 @@ export class Checklist extends DurableObject {
         if (newVote === 0) this.sql.exec("DELETE FROM votes WHERE actor = ? AND fork_id = ?", actor, forkId);
         else this.sql.exec("INSERT INTO votes (actor, fork_id, value) VALUES (?, ?, ?) ON CONFLICT(actor, fork_id) DO UPDATE SET value = excluded.value", actor, forkId, newVote);
         this.sql.exec("UPDATE forks SET score = ? WHERE id = ?", afterScore, forkId);
-        this.log("vote_cast", actor, at, { forkId, previousVote, newVote, beforeScore, afterScore }, clientID());
+        this.log("vote_cast", actor, at, { forkId, previousVote, newVote, beforeScore, afterScore }, clientID);
         result = { previousVote, newVote, score: afterScore };
       });
       return json({ ok: true, ...result });
@@ -532,7 +532,7 @@ export class Checklist extends DurableObject {
       if (!this.sql.exec("SELECT id FROM forks WHERE id = ?", forkId).toArray().length) throw new Error("That version no longer exists.");
       const comment = { id: crypto.randomUUID(), actor, text, at };
       this.ctx.storage.transactionSync(() => {
-        const seq = this.log("comment_added", actor, at, { forkId, comment }, clientID());
+        const seq = this.log("comment_added", actor, at, { forkId, comment }, clientID);
         this.sql.exec("INSERT INTO comments (id, fork_id, actor, text, created_at, event_seq) VALUES (?, ?, ?, ?, ?, ?)", comment.id, forkId, actor, text, at, seq);
       });
       return json({ ok: true, commentId: comment.id });
